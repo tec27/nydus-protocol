@@ -85,10 +85,25 @@ function decodeCall(parsed, result) {
   result.procPath = parsed[2]
   if (parsed.length > 3) {
     result.params = parsed.slice(3)
+  } else {
+    result.params = []
   }
 }
 
 function decodeResult(parsed, result) {
+  // [ RESULT, callId, ... ]
+  if (parsed.length < 2) {
+    throw new Error('invalid RESULT message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid RESULT message, callId must be a String')
+  }
+
+  result.callId = parsed[1]
+  if (parsed.length > 2) {
+    result.results = parsed.slice(2)
+  } else {
+    result.results = []
+  }
 }
 
 function decodeError(parsed, result) {
