@@ -215,4 +215,24 @@ describe('nydus-protocol', function() {
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
+
+  describe('#decode(UNSUBSCRIBE)', function() {
+    it('should parse a valid message', function() {
+      var encoded = JSON.stringify([ proto.UNSUBSCRIBE, '/test/path' ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.UNSUBSCRIBE
+                            , topicPath: '/test/path'
+                            })
+    })
+
+    it('should throw on shortened messages', function() {
+      var encoded = JSON.stringify([ proto.UNSUBSCRIBE ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+
+    it('should throw on invalid types', function() {
+      var encoded = JSON.stringify([ proto.UNSUBSCRIBE, 7 ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
 })

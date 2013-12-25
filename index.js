@@ -141,6 +141,14 @@ function decodeSubscribe(parsed, result) {
 }
 
 function decodeUnsubscribe(parsed, result) {
+  // [ UNSUBSCRIBE, topicPath ]
+  if (parsed.length < 2) {
+    throw new Error('invalid UNSUBSCRIBE message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid UNSUBSCRIBE message, topicPath must be a String')
+  }
+
+  result.topicPath = parsed[1]
 }
 
 function decodePublish(parsed, result) {
