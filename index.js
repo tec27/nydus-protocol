@@ -107,6 +107,23 @@ function decodeResult(parsed, result) {
 }
 
 function decodeError(parsed, result) {
+  // [ ERROR, callId, errorCode, errorDesc, errorDetails (optional) ]
+  if (parsed.length < 4) {
+    throw new Error('invalid ERROR message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid ERROR message, callId must be a String')
+  } else if (typeof parsed[2] != 'number') {
+    throw new Error('invalid ERROR message, errorCode must be a Number')
+  } else if (typeof parsed[3] != 'string') {
+    throw new Error('invalid ERROR message, errorDesc must be a String')
+  }
+
+  result.callId = parsed[1]
+  result.errorCode = parsed[2]
+  result.errorDesc = parsed[3]
+  if (parsed.length >= 5) {
+    result.errorDetails = parsed[4]
+  }
 }
 
 function decodeSubscribe(parsed, result) {

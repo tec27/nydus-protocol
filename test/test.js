@@ -151,4 +151,44 @@ describe('nydus-protocol', function() {
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
+
+  describe('#decode(ERROR)', function() {
+    it('should parse a detail-less message', function() {
+      var encoded = JSON.stringify([ proto.ERROR, 'coolId', 403, 'unauthorized' ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.ERROR
+                            , callId: 'coolId'
+                            , errorCode: 403
+                            , errorDesc: 'unauthorized'
+                            })
+    })
+
+    it('should parsed a message with details', function() {
+      var encoded = JSON.stringify([ proto.ERROR, 'coolId', 403, 'unauthorized',
+            { message: 'You are not authorized to do this' }])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.ERROR
+                            , callId: 'coolId'
+                            , errorCode: 403
+                            , errorDesc: 'unauthorized'
+                            , errorDetails: { message: 'You are not authorized to do this' }
+                            })
+    })
+
+    it('should throw on shortened messages', function() {
+      var encoded = JSON.stringify([ proto.ERROR, 'coolId', 403 ])
+      expect(bindDecode(encoded)).throw(Error)
+    })
+
+    it('should throw on invalidly typed messages', function() {
+      var encoded = JSON.stringify([ proto.ERROR, 7, 403, 'unauthorized' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+
+      encoded = JSON.stringify([ proto.ERROR, 'coolId', 'code', 'unauthorized'])
+      expect(bindDecode(encoded)).to.throw(Error)
+
+      encoded = JSON.stringify([ proto.ERROR, 'coolId', 403, 7 ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
 })
