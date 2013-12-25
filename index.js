@@ -167,4 +167,13 @@ function decodePublish(parsed, result) {
 }
 
 function decodeEvent(parsed, result) {
+  // [ EVENT, topicPath, event ]
+  if (parsed.length < 3) {
+    throw new Error('invalid EVENT message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid EVENT message, topicPath must be a String')
+  }
+
+  result.topicPath = parsed[1]
+  result.event = parsed[2]
 }

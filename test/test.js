@@ -270,4 +270,25 @@ describe('nydus-protocol', function() {
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
+
+  describe('#decode(EVENT)', function() {
+    it('should parse valid messages', function() {
+      var encoded = JSON.stringify([ proto.EVENT, '/test/path', 'event' ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.EVENT
+                            , topicPath: '/test/path'
+                            , event: 'event'
+                            })
+    })
+
+    it('should throw on shortned messages', function() {
+      var encoded = JSON.stringify([ proto.EVENT, '/test/path' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+
+    it('should throw on invalid types', function() {
+      var encoded = JSON.stringify([ proto.EVENT, 7, 'event' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
 })
