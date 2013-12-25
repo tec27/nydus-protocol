@@ -58,9 +58,34 @@ exports.decode = function(str) {
 }
 
 function decodeWelcome(parsed, result) {
+  // [ WELCOME, protocolVersion, serverAgent ]
+  if (parsed.length != 3) {
+    throw new Error('invalid WELCOME message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'number') {
+    throw new Error('invalid WELCOME message, protocolVersion must be a Number')
+  } else if (typeof parsed[2] != 'string') {
+    throw new Error('invalid WELCOME message, serverAgent must be a String')
+  }
+
+  result.protocolVersion = parsed[1]
+  result.serverAgent = parsed[2]
 }
 
 function decodeCall(parsed, result) {
+  // [ CALL, callId, procPath, ... ]
+  if (parsed.length < 3) {
+    throw new Error('invalid CALL message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid CALL message, callId must be a String')
+  } else if (typeof parsed[2] != 'string') {
+    throw new Error('invalid CALL message, procPath must be a String')
+  }
+
+  result.callId = parsed[1]
+  result.procPath = parsed[2]
+  if (parsed.length > 3) {
+    result.params = parsed.slice(3)
+  }
 }
 
 function decodeResult(parsed, result) {

@@ -4,7 +4,8 @@
   "description": "Strem encoder/decoder for nydus, a simple RPC/PubSub protocol designed for use over WebSockets.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "autotest": "mocha -R spec --watch --recursive test/",
+    "test": "mocha -R spec --recursive test/"
   },
   "repository": {
     "type": "git",
@@ -26,5 +27,9 @@
   "homepage": "https://github.com/tec27/nydus-protocol",
   "dependencies": {
     "debug": "~0.7.4"
+  },
+  "devDependencies": {
+    "mocha": "~1.16.2",
+    "chai": "~1.8.1"
   }
 }
