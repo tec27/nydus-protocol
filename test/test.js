@@ -235,4 +235,39 @@ describe('nydus-protocol', function() {
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
+
+  describe('#decode(PUBLISH)', function() {
+    it('should parse a valid message using default excludeMe', function() {
+      var encoded = JSON.stringify([ proto.PUBLISH, '/test/path', 'event' ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.PUBLISH
+                            , topicPath: '/test/path'
+                            , event: 'event'
+                            , excludeMe: false
+                            })
+    })
+
+    it('should parse a valid message with excludeMe specified', function() {
+      var encoded = JSON.stringify([ proto.PUBLISH, '/test/path', 'event', true ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.PUBLISH
+                            , topicPath: '/test/path'
+                            , event: 'event'
+                            , excludeMe: true
+                            })
+    })
+
+    it('should throw on shortened messages', function() {
+      var encoded = JSON.stringify([ proto.PUBLISH, '/test/path' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+
+    it('should throw on invalid types', function() {
+      var encoded = JSON.stringify([ proto.PUBLISH, 7, 'event', true ])
+      expect(bindDecode(encoded)).to.throw(Error)
+
+      encoded = JSON.stringify([ proto.PUBLISH, '/test/path', 'event', 1 ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
 })

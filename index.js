@@ -152,6 +152,18 @@ function decodeUnsubscribe(parsed, result) {
 }
 
 function decodePublish(parsed, result) {
+  // [ PUBLISH, topicPath, event, excludeMe (optional, defaults to false) ]
+  if (parsed.length < 3) {
+    throw new Error('invalid PUBLISH message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid PUBLISH message, topicPath must be a String')
+  } else if (parsed.length > 3 && typeof parsed[3] != 'boolean') {
+    throw new Error('invalid PUBLISH message, excludeMe must be a Boolean')
+  }
+
+  result.topicPath = parsed[1]
+  result.event = parsed[2]
+  result.excludeMe = parsed.length > 3 ? parsed[3] : false
 }
 
 function decodeEvent(parsed, result) {
