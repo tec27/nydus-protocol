@@ -25,5 +25,6 @@
   },
   "homepage": "https://github.com/tec27/nydus-protocol",
   "dependencies": {
+    "debug": "~0.7.4"
   }
 }
