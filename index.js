@@ -59,7 +59,7 @@ exports.decode = function(str) {
 
 function decodeWelcome(parsed, result) {
   // [ WELCOME, protocolVersion, serverAgent ]
-  if (parsed.length != 3) {
+  if (parsed.length < 3) {
     throw new Error('invalid WELCOME message length: ' + parsed.length)
   } else if (typeof parsed[1] != 'number') {
     throw new Error('invalid WELCOME message, protocolVersion must be a Number')
@@ -127,6 +127,17 @@ function decodeError(parsed, result) {
 }
 
 function decodeSubscribe(parsed, result) {
+  // [ SUBSCRIBE, requestId, topicPath ]
+  if (parsed.length < 3) {
+    throw new Error('invalid SUBSCRIBE message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid SUBSCRIBE message, requestId must be a String')
+  } else if (typeof parsed[2] != 'string') {
+    throw new Error('invalid SUBSCRIBE message, topicPath must be a String')
+  }
+
+  result.requestId = parsed[1]
+  result.topicPath = parsed[2]
 }
 
 function decodeUnsubscribe(parsed, result) {

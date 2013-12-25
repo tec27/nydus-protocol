@@ -191,4 +191,28 @@ describe('nydus-protocol', function() {
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
+
+  describe('#decode(SUBSCRIBE)', function() {
+    it('should parse a valid message', function() {
+      var encoded = JSON.stringify([ proto.SUBSCRIBE, 'coolId', '/test/path' ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.SUBSCRIBE
+                            , requestId: 'coolId'
+                            , topicPath: '/test/path'
+                            })
+    })
+
+    it('should throw on shortened messages', function() {
+      var encoded = JSON.stringify([ proto.SUBSCRIBE, 'coolId' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+
+    it('should throw on invalid types', function() {
+      var encoded = JSON.stringify([ proto.SUBSCRIBE, 7, '/test/path' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+
+      encoded = JSON.stringify([ proto.SUBSCRIBE, 'coolId', 7 ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
 })
