@@ -117,7 +117,7 @@ function encodeWelcome(obj, result) {
   // [ WELCOME, protocolVersion, serverAgent ]
   // Note that protocolVersion is handled by us, so only a serverAgent needs to be specified
   if (obj.serverAgent == null) {
-    throw new Error('incomplete WELCOME object, serverAgent must be specified.')
+    throw new Error('incomplete WELCOME object, serverAgent must be specified')
   }
 
   result.push(exports.protocolVersion)
@@ -143,6 +143,22 @@ function decodeCall(parsed, result) {
   }
 }
 
+function encodeCall(obj, result) {
+  // [ CALL, callId, procPath, params...]
+  if (obj.callId == null) {
+    throw new Error('incomplete CALL object, callId must be specified')
+  } else if (obj.procPath == null) {
+    throw new Error('incomplete CALL object, procPath must be specified')
+  } else if (obj.params != null && !Array.isArray(obj.params)) {
+    throw new Error('invalid CALL object, params must be an array if specified')
+  }
+
+  result.push('' + obj.callId)
+  result.push('' + obj.procPath)
+  var params = obj.params || []
+  result.push.apply(result, params)
+}
+
 function decodeResult(parsed, result) {
   // [ RESULT, callId, ... ]
   if (parsed.length < 2) {
@@ -157,6 +173,19 @@ function decodeResult(parsed, result) {
   } else {
     result.results = []
   }
+}
+
+function encodeResult(obj, result) {
+  // [ RESULT, callId, results... ]
+  if (obj.callId == null) {
+    throw new Error('incomplete RESULT object, callId must be specified')
+  } else if (obj.results != null && !Array.isArray(obj.results)) {
+    throw new Error('invalid RESULT object, results must be an array if specified')
+  }
+
+  result.push('' + obj.callId)
+  var resultList = obj.results || []
+  result.push.apply(result, resultList)
 }
 
 function decodeError(parsed, result) {

@@ -311,21 +311,168 @@ describe('nydus-protocol', function() {
         , result = proto.encode(obj)
       expect(JSON.parse(result)).to.eql([ proto.WELCOME
                                         , proto.protocolVersion
-                                        , 'AwesomeServer/1.0.1' ])
+                                        , 'AwesomeServer/1.0.1'
+                                        ])
     })
 
     it('should convert serverAgent to a string', function() {
       var obj = { type: proto.WELCOME, serverAgent: 7 }
         , result = proto.encode(obj)
-      expect(JSON.parse(result)).to.deep.equal([ proto.WELCOME
-                                        , proto.protocolVersion
-                                        , '7'
-                                        ])
+      expect(JSON.parse(result)).to.deep.equal( [ proto.WELCOME
+                                                , proto.protocolVersion
+                                                , '7'
+                                                ])
     })
 
     it('should throw on incomplete objects', function() {
       expect(bindEncode({ type: proto.WELCOME })).to.throw(Error)
       expect(bindEncode({ type: proto.WELCOME, serverAgent: null })).to.throw(Error)
+    })
+  })
+
+  describe('#encode(CALL)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.CALL
+                , callId: 'coolId'
+                , procPath: null
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.procPath
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.procPath = '/test/path'
+      obj.callId = null
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.callId
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should throw on incorrectly typed params', function() {
+      var obj = { type: proto.CALL
+                , callId: 'coolId'
+                , procPath: '/test/path'
+                , params: 7
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.params = 'asdf'
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.params = {}
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode a valid parameterless object', function() {
+      var obj = { type: proto.CALL
+                , callId: 'coolId'
+                , procPath: '/test/path'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.CALL
+                                                , 'coolId'
+                                                , '/test/path'
+                                                ])
+    })
+
+    it('should encode an object with an empty parameter list', function() {
+      var obj = { type: proto.CALL
+                , callId: 'coolId'
+                , procPath: '/test/path'
+                , params: []
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.CALL
+                                                , 'coolId'
+                                                , '/test/path'
+                                                ])
+    })
+
+    it('should encode an object with parameters', function() {
+      var obj = { type: proto.CALL
+                , callId: 'coolId'
+                , procPath: '/test/path'
+                , params: [ 7
+                          , { test: true }
+                          , 'test'
+                          , [ 'arrays' ]
+                          ]
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.CALL
+                                                , 'coolId'
+                                                , '/test/path'
+                                                , 7
+                                                , { test: true }
+                                                , 'test'
+                                                , [ 'arrays' ]
+                                                ])
+    })
+
+    it('should coerce values to correct types', function() {
+      var obj = { type: proto.CALL
+                , callId: 7
+                , procPath: 4
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.CALL
+                                                , '7'
+                                                , '4'
+                                                ])
+    })
+  })
+
+  describe('#encode(RESULT)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.RESULT }
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.callId = null
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should throw on invalid results list', function() {
+      var obj = { type: proto.RESULT
+                , callId: 'coolId'
+                , results: 7
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.results = 'test'
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.results = { test: true }
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode an object with no results', function() {
+      var obj = { type: proto.RESULT, callId: 'coolId' }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, 'coolId' ])
+    })
+
+    it('should encode an object with empty results list', function() {
+      var obj = { type: proto.RESULT, callId: 'coolId', results: [] }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, 'coolId' ])
+    })
+
+    it('should encode an object with results', function() {
+      var obj = { type: proto.RESULT
+                , callId: 'coolId'
+                , results:  [ 7
+                            , { test: true }
+                            , 'test'
+                            , [ 'arrays' ]
+                            ]
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.RESULT
+                                                , 'coolId'
+                                                , 7
+                                                , { test: true }
+                                                , 'test'
+                                                , [ 'arrays' ]
+                                                ])
+    })
+
+    it('should coerce values to the correct type', function() {
+      var obj = { type: proto.RESULT, callId: 7 }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, '7' ])
     })
   })
 })
