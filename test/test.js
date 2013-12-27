@@ -737,4 +737,89 @@ describe('nydus-protocol', function() {
                                                 ])
     })
   })
+
+  describe('nydus-protocol', function() {
+    it('should isomorphically encode/decode WELCOME', function() {
+      var obj = { type: proto.WELCOME
+                , serverAgent: 'AwesomeServer/1.0.1'
+                }
+        , result = proto.decode(proto.encode(obj))
+      obj.protocolVersion = proto.protocolVersion // not necessary to encode, but added in encoding
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode CALL', function() {
+      var obj = { type: proto.CALL
+                , callId: 'coolId'
+                , procPath: '/test/path'
+                , params: [ [ 'test', 'cool', 'params', 'bro' ], 'yeah', 7 ]
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode RESULT', function() {
+      var obj = { type: proto.RESULT
+                , callId: 'coolId'
+                , results: [ [ 'cool', 'results', 'bro'], 'yeah', 7 ]
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode ERROR', function() {
+      var obj = { type: proto.ERROR
+                , callId: 'coolId'
+                , errorCode: 404
+                , errorDesc: 'not found'
+                , errorDetails: { message: 'sorry not found try later thx' }
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode SUBSCRIBE', function() {
+      var obj = { type: proto.SUBSCRIBE
+                , requestId: 'coolId'
+                , topicPath: '/test/path'
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode UNSUBSCRIBE', function() {
+      var obj = { type: proto.UNSUBSCRIBE
+                , topicPath: '/test/path'
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode PUBLISH', function() {
+      var obj = { type: proto.PUBLISH
+                , topicPath: '/test/path'
+                , event: null
+                , excludeMe: true
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+
+    it('should isomorphically encode/decode EVENT', function() {
+      var obj = { type: proto.EVENT
+                , topicPath: '/test/path'
+                , event: null
+                }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
+  })
 })
