@@ -475,4 +475,120 @@ describe('nydus-protocol', function() {
       expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, '7' ])
     })
   })
+
+  describe('#encode(ERROR)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.ERROR
+                , errorCode: 404
+                , errorDesc: 'not found'
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.callId = null
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.callId = 'coolId'
+      obj.errorCode = null
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.errorCode
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.errorCode = 404
+      obj.errorDesc = null
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.errorDesc
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should throw on non-numeric error codes', function() {
+      var obj = { type: proto.ERROR
+                , callId: 'coolId'
+                , errorCode: 'a'
+                , errorDesc: 'wat'
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode an object without errorDetails', function() {
+      var obj = { type: proto.ERROR
+                , callId: 'coolId'
+                , errorCode: 404
+                , errorDesc: 'not found'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.ERROR
+                                                , 'coolId'
+                                                , 404
+                                                , 'not found'
+                                                ])
+    })
+
+    it('should encode an object with errorDetails', function() {
+      var obj = { type: proto.ERROR
+                , callId: 'coolId'
+                , errorCode: 404
+                , errorDesc: 'not found'
+                , errorDetails: { message: '/test/path could not be found' }
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.ERROR
+                                                , 'coolId'
+                                                , 404
+                                                , 'not found'
+                                                , { message: '/test/path could not be found' }
+                                                ])
+    })
+
+    it('should coerce values to the correct type', function() {
+      var obj = { type: proto.ERROR
+                , callId: 7
+                , errorCode: 404
+                , errorDesc: 7
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.ERROR
+                                                , '7'
+                                                , 404
+                                                , '7'
+                                                ])
+    })
+  })
+
+  describe('#encode(SUBSCRIBE)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.SUBSCRIBE
+                , requestId: null
+                , topicPath: '/test/path'
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.requestId
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.requestId = 'coolId'
+      obj.topicPath = null
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.topicPath
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode valid objects', function() {
+      var obj = { type: proto.SUBSCRIBE
+                , requestId: 'coolId'
+                , topicPath: '/test/path'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.SUBSCRIBE
+                                                , 'coolId'
+                                                , '/test/path'
+                                                ])
+    })
+
+    it('should coerce values to proper types', function() {
+      var obj = { type: proto.SUBSCRIBE
+                , requestId: 7
+                , topicPath: 7
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.SUBSCRIBE
+                                                , '7'
+                                                , '7'
+                                                ])
+    })
+  })
 })

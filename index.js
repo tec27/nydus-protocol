@@ -208,6 +208,29 @@ function decodeError(parsed, result) {
   }
 }
 
+function encodeError(obj, result) {
+  // [ ERROR, callId, errorCode, errorDesc, errorDetails (optional) ]
+  if (obj.callId == null) {
+    throw new Error('incomplete ERROR object, callId must be specified')
+  } else if (obj.errorCode == null) {
+    throw new Error('incomplete ERROR object, errorCode must be specified')
+  } else if (obj.errorDesc == null) {
+    throw new Error('incomplete ERROR object, errorDesc must be specified')
+  }
+
+  var errorCode = +obj.errorCode
+  if (Number.isNaN(errorCode)) {
+    throw new Error('invalid ERROR object, errorCode must be numeric')
+  }
+
+  result.push('' + obj.callId)
+  result.push(errorCode)
+  result.push('' + obj.errorDesc)
+  if (typeof obj.errorDetails != 'undefined') {
+    result.push(obj.errorDetails)
+  }
+}
+
 function decodeSubscribe(parsed, result) {
   // [ SUBSCRIBE, requestId, topicPath ]
   if (parsed.length < 3) {
@@ -220,6 +243,18 @@ function decodeSubscribe(parsed, result) {
 
   result.requestId = parsed[1]
   result.topicPath = parsed[2]
+}
+
+function encodeSubscribe(obj, result) {
+  // [ SUBSCRIBE, requestId, topicPath ]
+  if (obj.requestId == null) {
+    throw new Error('incomplete SUBSCRIBE object, requestId must be specified')
+  } else if (obj.topicPath == null) {
+    throw new Error('incomplete SUBSCRIBE object, topicPath must be specified')
+  }
+
+  result.push('' + obj.requestId)
+  result.push('' + obj.topicPath)
 }
 
 function decodeUnsubscribe(parsed, result) {
