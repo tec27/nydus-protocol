@@ -686,4 +686,55 @@ describe('nydus-protocol', function() {
                                                 ])
     })
   })
+
+  describe('#encode(EVENT)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.EVENT
+                , topicPath: null
+                , event: 'test'
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.topicPath
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.topicPath = '/test/path'
+      delete obj.event
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode valid objects', function() {
+      var obj = { type: proto.EVENT
+                , topicPath: '/test/path'
+                , event: 'test'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.EVENT
+                                                , '/test/path'
+                                                , 'test'
+                                                ])
+    })
+
+    it('should allow nulls for event', function() {
+      var obj = { type: proto.EVENT
+                , topicPath: '/test/path'
+                , event: null
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.EVENT
+                                                , '/test/path'
+                                                , null
+                                                ])
+    })
+
+    it('should coerce values to the correct type', function() {
+      var obj = { type: proto.EVENT
+                , topicPath: 7
+                , event: 'test'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.EVENT
+                                                , '7'
+                                                , 'test'
+                                                ])
+    })
+  })
 })

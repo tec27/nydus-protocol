@@ -319,3 +319,15 @@ function decodeEvent(parsed, result) {
   result.topicPath = parsed[1]
   result.event = parsed[2]
 }
+
+function encodeEvent(obj, result) {
+  // [ EVENT, topicPath, event ]
+  if (obj.topicPath == null) {
+    throw new Error('incomplete EVENT object, topicPath must be specified')
+  } else if (typeof obj.event == 'undefined') {
+    throw new Error('incomplete EVENT object, event must be specified')
+  }
+
+  result.push('' + obj.topicPath)
+  result.push(obj.event)
+}
