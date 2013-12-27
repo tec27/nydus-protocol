@@ -268,6 +268,15 @@ function decodeUnsubscribe(parsed, result) {
   result.topicPath = parsed[1]
 }
 
+function encodeUnsubscribe(obj, result) {
+  // [ UNSUBSCRIBE, topicPath ]
+  if (obj.topicPath == null) {
+    throw new Error('incomplete UNSUBSCRIBE object, topicPath must be specified')
+  }
+
+  result.push('' + obj.topicPath)
+}
+
 function decodePublish(parsed, result) {
   // [ PUBLISH, topicPath, event, excludeMe (optional, defaults to false) ]
   if (parsed.length < 3) {

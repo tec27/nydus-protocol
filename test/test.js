@@ -591,4 +591,26 @@ describe('nydus-protocol', function() {
                                                 ])
     })
   })
+
+  describe('#encode(UNSUBSCRIBE)', function() {
+    it('should throw on incomplete objects', function() {
+      expect(bindEncode({ type: proto.UNSUBSCRIBE })).to.throw(Error)
+    })
+
+    it('should encode valid objects', function() {
+      var obj = { type: proto.UNSUBSCRIBE
+                , topicPath: '/test/path'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, '/test/path' ])
+    })
+
+    it('should coerce values to the correct type', function() {
+      var obj = { type: proto.UNSUBSCRIBE
+                , topicPath: 7
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, '7' ])
+    })
+  })
 })
