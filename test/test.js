@@ -613,4 +613,77 @@ describe('nydus-protocol', function() {
       expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, '7' ])
     })
   })
+
+  describe('#encode(PUBLISH)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.PUBLISH
+                , topicPath: null
+                , event: 'test'
+                }
+      expect(bindEncode(obj)).to.throw(Error)
+      delete obj.topicPath
+      expect(bindEncode(obj)).to.throw(Error)
+      obj.topicPath = '/test/path'
+      delete obj.event
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode valid objects without excludeMe', function() {
+      var obj = { type: proto.PUBLISH
+                , topicPath: '/test/path'
+                , event: 'test'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.PUBLISH
+                                                , '/test/path'
+                                                , 'test'
+                                                ])
+    })
+
+    it('should encode valid objects with excludeMe', function() {
+      var obj = { type: proto.PUBLISH
+                , topicPath: '/test/path'
+                , event: 'test'
+                , excludeMe: true
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.PUBLISH
+                                                , '/test/path'
+                                                , 'test'
+                                                , true
+                                                ])
+      obj.excludeMe = false
+      result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.PUBLISH
+                                                , '/test/path'
+                                                , 'test'
+                                                ])
+    })
+
+    it('should allow nulls for event', function() {
+      var obj = { type: proto.PUBLISH
+                , topicPath: '/test/path'
+                , event: null
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.PUBLISH
+                                                , '/test/path'
+                                                , null
+                                                ])
+    })
+
+    it('should coerce values to the proper type', function() {
+      var obj = { type: proto.PUBLISH
+                , topicPath: 7
+                , event: 'blah'
+                , excludeMe: 1
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal( [ proto.PUBLISH
+                                                , '7'
+                                                , 'blah'
+                                                , true
+                                                ])
+    })
+  })
 })

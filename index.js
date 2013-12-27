@@ -292,6 +292,22 @@ function decodePublish(parsed, result) {
   result.excludeMe = parsed.length > 3 ? parsed[3] : false
 }
 
+function encodePublish(obj, result) {
+  // [ PUBLISH, topicPath, event, excludeMe (optional, defaults to false) ]
+  if (obj.topicPath == null) {
+    throw new Error('incomplete PUBLISH object, topicPath must be specified')
+  } else if (typeof obj.event == 'undefined') {
+    throw new Error('incomplete PUBLISH object, event must be specified')
+  }
+
+  result.push('' + obj.topicPath)
+  result.push(obj.event)
+  var exclude = !!obj.excludeMe
+  if (exclude) {
+    result.push(exclude)
+  }
+}
+
 function decodeEvent(parsed, result) {
   // [ EVENT, topicPath, event ]
   if (parsed.length < 3) {
