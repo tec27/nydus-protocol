@@ -14,6 +14,8 @@ Object.keys(exports.TYPES).forEach(function(key) {
   exports[key] = exports.TYPES[key]
 })
 
+exports.protocolVersion = 1
+
 exports.decode = function(str) {
   var parsed = JSON.parse(str)
   if (!Array.isArray(parsed)) {
@@ -57,6 +59,46 @@ exports.decode = function(str) {
   return result
 }
 
+// obj is an object with a type field, and any other type-specific fields (following the same format
+// as decoded messages)
+exports.encode = function(obj) {
+  var result = [ obj.type ]
+
+  switch(obj.type) {
+    case exports.WELCOME:
+      encodeWelcome(obj, result)
+      break
+    case exports.CALL:
+      encodeCall(obj, result)
+      break
+    case exports.RESULT:
+      encodeResult(obj, result)
+      break
+    case exports.ERROR:
+      encodeError(obj, result)
+      break
+    case exports.SUBSCRIBE:
+      encodeSubscribe(obj, result)
+      break
+    case exports.UNSUBSCRIBE:
+      encodeUnsubscribe(obj, result)
+      break
+    case exports.PUBLISH:
+      encodePublish(obj, result)
+      break
+    case exports.EVENT:
+      encodeEvent(obj, result)
+      break
+    default:
+      throw new Error('invalid message type: ' + obj.type)
+  }
+
+  var json = JSON.stringify(result)
+  debug('encoded %j as %s', obj, json)
+
+  return json
+}
+
 function decodeWelcome(parsed, result) {
   // [ WELCOME, protocolVersion, serverAgent ]
   if (parsed.length < 3) {
@@ -69,6 +111,17 @@ function decodeWelcome(parsed, result) {
 
   result.protocolVersion = parsed[1]
   result.serverAgent = parsed[2]
+}
+
+function encodeWelcome(obj, result) {
+  // [ WELCOME, protocolVersion, serverAgent ]
+  // Note that protocolVersion is handled by us, so only a serverAgent needs to be specified
+  if (obj.serverAgent == null) {
+    throw new Error('incomplete WELCOME object, serverAgent must be specified.')
+  }
+
+  result.push(exports.protocolVersion)
+  result.push('' + obj.serverAgent)
 }
 
 function decodeCall(parsed, result) {

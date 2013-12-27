@@ -5,6 +5,10 @@ function bindDecode(str) {
   return proto.decode.bind(proto, str)
 }
 
+function bindEncode(obj) {
+  return proto.encode.bind(proto, obj)
+}
+
 describe('nydus-protocol', function() {
   describe('#decode()', function() {
     it('should throw on invalid JSON', function() {
@@ -289,6 +293,39 @@ describe('nydus-protocol', function() {
     it('should throw on invalid types', function() {
       var encoded = JSON.stringify([ proto.EVENT, 7, 'event' ])
       expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
+
+  describe('#encode()', function() {
+    it('should throw on invalid types', function() {
+      expect(bindEncode({})).to.throw(Error)
+      expect(bindEncode({ type: 256 })).to.throw(Error)
+    })
+  })
+
+  describe('#encode(WELCOME)', function() {
+    it('should encode a valid message', function() {
+      var obj = { type: proto.WELCOME
+                , serverAgent: 'AwesomeServer/1.0.1'
+                }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.eql([ proto.WELCOME
+                                        , proto.protocolVersion
+                                        , 'AwesomeServer/1.0.1' ])
+    })
+
+    it('should convert serverAgent to a string', function() {
+      var obj = { type: proto.WELCOME, serverAgent: 7 }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.WELCOME
+                                        , proto.protocolVersion
+                                        , '7'
+                                        ])
+    })
+
+    it('should throw on incomplete objects', function() {
+      expect(bindEncode({ type: proto.WELCOME })).to.throw(Error)
+      expect(bindEncode({ type: proto.WELCOME, serverAgent: null })).to.throw(Error)
     })
   })
 })
