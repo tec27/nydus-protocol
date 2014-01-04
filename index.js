@@ -16,6 +16,17 @@ Object.keys(exports.TYPES).forEach(function(key) {
 
 exports.protocolVersion = 1
 
+// Build a lookup which should be faster than an unoptimizable switch
+var decoders = []
+decoders[exports.WELCOME] = decodeWelcome
+decoders[exports.CALL] = decodeCall
+decoders[exports.RESULT] = decodeResult
+decoders[exports.ERROR] = decodeError
+decoders[exports.SUBSCRIBE] = decodeSubscribe
+decoders[exports.UNSUBSCRIBE] = decodeUnsubscribe
+decoders[exports.PUBLISH] = decodePublish
+decoders[exports.EVENT] = decodeEvent
+
 exports.decode = function(str) {
   var parsed = JSON.parse(str)
   if (!Array.isArray(parsed)) {
@@ -26,77 +37,42 @@ exports.decode = function(str) {
 
   var result = {}
   result.type = parsed[0]
-  switch(result.type) {
-    case exports.WELCOME:
-      decodeWelcome(parsed, result)
-      break
-    case exports.CALL:
-      decodeCall(parsed, result)
-      break
-    case exports.RESULT:
-      decodeResult(parsed, result)
-      break
-    case exports.ERROR:
-      decodeError(parsed, result)
-      break
-    case exports.SUBSCRIBE:
-      decodeSubscribe(parsed, result)
-      break
-    case exports.UNSUBSCRIBE:
-      decodeUnsubscribe(parsed, result)
-      break
-    case exports.PUBLISH:
-      decodePublish(parsed, result)
-      break
-    case exports.EVENT:
-      decodeEvent(parsed, result)
-      break
-    default:
-      throw new Error('invalid message type: ' + result.type)
-  }
+  var decodeFunc = decoders[result.type] || invalidType
+  decodeFunc(parsed, result)
 
   debug('decoded %s as %j', str, result)
   return result
+
+  function invalidType() {
+    throw new Error('invalid message type: ' + result.type)
+  }
 }
 
+// Build a lookup which should be faster than an unoptimizable switch
+var encoders = []
+encoders[exports.WELCOME] = encodeWelcome
+encoders[exports.CALL] = encodeCall
+encoders[exports.RESULT] = encodeResult
+encoders[exports.ERROR] = encodeError
+encoders[exports.SUBSCRIBE] = encodeSubscribe
+encoders[exports.UNSUBSCRIBE] = encodeUnsubscribe
+encoders[exports.PUBLISH] = encodePublish
+encoders[exports.EVENT] = encodeEvent
 // obj is an object with a type field, and any other type-specific fields (following the same format
 // as decoded messages)
 exports.encode = function(obj) {
   var result = [ obj.type ]
-
-  switch(obj.type) {
-    case exports.WELCOME:
-      encodeWelcome(obj, result)
-      break
-    case exports.CALL:
-      encodeCall(obj, result)
-      break
-    case exports.RESULT:
-      encodeResult(obj, result)
-      break
-    case exports.ERROR:
-      encodeError(obj, result)
-      break
-    case exports.SUBSCRIBE:
-      encodeSubscribe(obj, result)
-      break
-    case exports.UNSUBSCRIBE:
-      encodeUnsubscribe(obj, result)
-      break
-    case exports.PUBLISH:
-      encodePublish(obj, result)
-      break
-    case exports.EVENT:
-      encodeEvent(obj, result)
-      break
-    default:
-      throw new Error('invalid message type: ' + obj.type)
-  }
+    , encodeFunc = encoders[obj.type] || invalidType
+  encodeFunc(obj, result)
 
   var json = JSON.stringify(result)
   debug('encoded %j as %s', obj, json)
 
   return json
+
+  function invalidType() {
+    throw new Error('invalid message type: ' + obj.type)
+  }
 }
 
 function decodeWelcome(parsed, result) {
