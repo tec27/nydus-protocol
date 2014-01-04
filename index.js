@@ -258,22 +258,28 @@ function encodeSubscribe(obj, result) {
 }
 
 function decodeUnsubscribe(parsed, result) {
-  // [ UNSUBSCRIBE, topicPath ]
-  if (parsed.length < 2) {
+  // [ UNSUBSCRIBE, requestId, topicPath ]
+  if (parsed.length < 3) {
     throw new Error('invalid UNSUBSCRIBE message length: ' + parsed.length)
   } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid UNSUBSCRIBE message, requestId must be a String')
+  } else if (typeof parsed[2] != 'string') {
     throw new Error('invalid UNSUBSCRIBE message, topicPath must be a String')
   }
 
-  result.topicPath = parsed[1]
+  result.requestId = parsed[1]
+  result.topicPath = parsed[2]
 }
 
 function encodeUnsubscribe(obj, result) {
-  // [ UNSUBSCRIBE, topicPath ]
-  if (obj.topicPath == null) {
+  // [ UNSUBSCRIBE, requestId, topicPath ]
+  if (obj.requestId == null) {
+    throw new Error('incomplete UNSUBSCRIBE object, requestId must be specified')
+  } else if (obj.topicPath == null) {
     throw new Error('incomplete UNSUBSCRIBE object, topicPath must be specified')
   }
 
+  result.push('' + obj.requestId)
   result.push('' + obj.topicPath)
 }
 

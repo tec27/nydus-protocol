@@ -222,9 +222,10 @@ describe('nydus-protocol', function() {
 
   describe('#decode(UNSUBSCRIBE)', function() {
     it('should parse a valid message', function() {
-      var encoded = JSON.stringify([ proto.UNSUBSCRIBE, '/test/path' ])
+      var encoded = JSON.stringify([ proto.UNSUBSCRIBE, 'coolId', '/test/path' ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.UNSUBSCRIBE
+                            , requestId: 'coolId'
                             , topicPath: '/test/path'
                             })
     })
@@ -232,10 +233,14 @@ describe('nydus-protocol', function() {
     it('should throw on shortened messages', function() {
       var encoded = JSON.stringify([ proto.UNSUBSCRIBE ])
       expect(bindDecode(encoded)).to.throw(Error)
+      encoded = JSON.stringify([ proto.UNSUBSCRIBE, 'coolId' ])
+      expect(bindDecode(encoded)).to.throw(Error)
     })
 
     it('should throw on invalid types', function() {
-      var encoded = JSON.stringify([ proto.UNSUBSCRIBE, 7 ])
+      var encoded = JSON.stringify([ proto.UNSUBSCRIBE, 7, '/test/path' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+      encoded = JSON.stringify([ proto.UNSUBSCRIBE, 'coolId', 7 ])
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
@@ -595,22 +600,26 @@ describe('nydus-protocol', function() {
   describe('#encode(UNSUBSCRIBE)', function() {
     it('should throw on incomplete objects', function() {
       expect(bindEncode({ type: proto.UNSUBSCRIBE })).to.throw(Error)
+      expect(bindEncode({ type: proto.UNSUBSCRIBE, requestId: 'coolId' })).to.throw(Error)
+      expect(bindEncode({ type: proto.UNSUBSCRIBE, topicPath: '/test/path' })).to.throw(Error)
     })
 
     it('should encode valid objects', function() {
       var obj = { type: proto.UNSUBSCRIBE
+                , requestId: 'coolId'
                 , topicPath: '/test/path'
                 }
         , result = proto.encode(obj)
-      expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, '/test/path' ])
+      expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, 'coolId', '/test/path' ])
     })
 
     it('should coerce values to the correct type', function() {
       var obj = { type: proto.UNSUBSCRIBE
+                , requestId: 7
                 , topicPath: 7
                 }
         , result = proto.encode(obj)
-      expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, '7' ])
+      expect(JSON.parse(result)).to.deep.equal([ proto.UNSUBSCRIBE, '7', '7' ])
     })
   })
 
@@ -794,6 +803,7 @@ describe('nydus-protocol', function() {
 
     it('should isomorphically encode/decode UNSUBSCRIBE', function() {
       var obj = { type: proto.UNSUBSCRIBE
+                , requestId: 'coolId'
                 , topicPath: '/test/path'
                 }
         , result = proto.decode(proto.encode(obj))
