@@ -56,7 +56,7 @@ describe('nydus-protocol', function() {
       var encoded = JSON.stringify([ proto.CALL, 'coolId', '/test/path' ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.CALL
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , procPath: '/test/path'
                             , params: []
                             })
@@ -66,7 +66,7 @@ describe('nydus-protocol', function() {
       var encoded = JSON.stringify([ proto.CALL, 'coolId', '/test/path', 'param' ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.CALL
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , procPath: '/test/path'
                             , params: [ 'param' ]
                             })
@@ -83,7 +83,7 @@ describe('nydus-protocol', function() {
                                     ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.CALL
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , procPath: '/test/path'
                             , params: [ 'param'
                                       , 7
@@ -112,7 +112,7 @@ describe('nydus-protocol', function() {
       var encoded = JSON.stringify([ proto.RESULT, 'coolId' ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.RESULT
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , results: []
                             })
     })
@@ -121,7 +121,7 @@ describe('nydus-protocol', function() {
       var encoded = JSON.stringify([ proto.RESULT, 'coolId', 'result' ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.RESULT
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , results: [ 'result' ]
                             })
     })
@@ -136,7 +136,7 @@ describe('nydus-protocol', function() {
                                     ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.RESULT
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , results: [ 'result'
                                       , 7
                                       , { test: true }
@@ -161,7 +161,7 @@ describe('nydus-protocol', function() {
       var encoded = JSON.stringify([ proto.ERROR, 'coolId', 403, 'unauthorized' ])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.ERROR
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , errorCode: 403
                             , errorDesc: 'unauthorized'
                             })
@@ -172,7 +172,7 @@ describe('nydus-protocol', function() {
             { message: 'You are not authorized to do this' }])
         , result = proto.decode(encoded)
       expect(result).to.eql({ type: proto.ERROR
-                            , callId: 'coolId'
+                            , requestId: 'coolId'
                             , errorCode: 403
                             , errorDesc: 'unauthorized'
                             , errorDetails: { message: 'You are not authorized to do this' }
@@ -338,22 +338,22 @@ describe('nydus-protocol', function() {
   describe('#encode(CALL)', function() {
     it('should throw on incomplete objects', function() {
       var obj = { type: proto.CALL
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , procPath: null
                 }
       expect(bindEncode(obj)).to.throw(Error)
       delete obj.procPath
       expect(bindEncode(obj)).to.throw(Error)
       obj.procPath = '/test/path'
-      obj.callId = null
+      obj.requestId = null
       expect(bindEncode(obj)).to.throw(Error)
-      delete obj.callId
+      delete obj.requestId
       expect(bindEncode(obj)).to.throw(Error)
     })
 
     it('should throw on incorrectly typed params', function() {
       var obj = { type: proto.CALL
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , procPath: '/test/path'
                 , params: 7
                 }
@@ -366,7 +366,7 @@ describe('nydus-protocol', function() {
 
     it('should encode a valid parameterless object', function() {
       var obj = { type: proto.CALL
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , procPath: '/test/path'
                 }
         , result = proto.encode(obj)
@@ -378,7 +378,7 @@ describe('nydus-protocol', function() {
 
     it('should encode an object with an empty parameter list', function() {
       var obj = { type: proto.CALL
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , procPath: '/test/path'
                 , params: []
                 }
@@ -391,7 +391,7 @@ describe('nydus-protocol', function() {
 
     it('should encode an object with parameters', function() {
       var obj = { type: proto.CALL
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , procPath: '/test/path'
                 , params: [ 7
                           , { test: true }
@@ -412,7 +412,7 @@ describe('nydus-protocol', function() {
 
     it('should coerce values to correct types', function() {
       var obj = { type: proto.CALL
-                , callId: 7
+                , requestId: 7
                 , procPath: 4
                 }
         , result = proto.encode(obj)
@@ -427,13 +427,13 @@ describe('nydus-protocol', function() {
     it('should throw on incomplete objects', function() {
       var obj = { type: proto.RESULT }
       expect(bindEncode(obj)).to.throw(Error)
-      obj.callId = null
+      obj.requestId = null
       expect(bindEncode(obj)).to.throw(Error)
     })
 
     it('should throw on invalid results list', function() {
       var obj = { type: proto.RESULT
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , results: 7
                 }
       expect(bindEncode(obj)).to.throw(Error)
@@ -444,20 +444,20 @@ describe('nydus-protocol', function() {
     })
 
     it('should encode an object with no results', function() {
-      var obj = { type: proto.RESULT, callId: 'coolId' }
+      var obj = { type: proto.RESULT, requestId: 'coolId' }
         , result = proto.encode(obj)
       expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, 'coolId' ])
     })
 
     it('should encode an object with empty results list', function() {
-      var obj = { type: proto.RESULT, callId: 'coolId', results: [] }
+      var obj = { type: proto.RESULT, requestId: 'coolId', results: [] }
         , result = proto.encode(obj)
       expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, 'coolId' ])
     })
 
     it('should encode an object with results', function() {
       var obj = { type: proto.RESULT
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , results:  [ 7
                             , { test: true }
                             , 'test'
@@ -475,7 +475,7 @@ describe('nydus-protocol', function() {
     })
 
     it('should coerce values to the correct type', function() {
-      var obj = { type: proto.RESULT, callId: 7 }
+      var obj = { type: proto.RESULT, requestId: 7 }
         , result = proto.encode(obj)
       expect(JSON.parse(result)).to.deep.equal([ proto.RESULT, '7' ])
     })
@@ -488,9 +488,9 @@ describe('nydus-protocol', function() {
                 , errorDesc: 'not found'
                 }
       expect(bindEncode(obj)).to.throw(Error)
-      obj.callId = null
+      obj.requestId = null
       expect(bindEncode(obj)).to.throw(Error)
-      obj.callId = 'coolId'
+      obj.requestId = 'coolId'
       obj.errorCode = null
       expect(bindEncode(obj)).to.throw(Error)
       delete obj.errorCode
@@ -504,7 +504,7 @@ describe('nydus-protocol', function() {
 
     it('should throw on non-numeric error codes', function() {
       var obj = { type: proto.ERROR
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , errorCode: 'a'
                 , errorDesc: 'wat'
                 }
@@ -513,7 +513,7 @@ describe('nydus-protocol', function() {
 
     it('should encode an object without errorDetails', function() {
       var obj = { type: proto.ERROR
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , errorCode: 404
                 , errorDesc: 'not found'
                 }
@@ -527,7 +527,7 @@ describe('nydus-protocol', function() {
 
     it('should encode an object with errorDetails', function() {
       var obj = { type: proto.ERROR
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , errorCode: 404
                 , errorDesc: 'not found'
                 , errorDetails: { message: '/test/path could not be found' }
@@ -543,7 +543,7 @@ describe('nydus-protocol', function() {
 
     it('should coerce values to the correct type', function() {
       var obj = { type: proto.ERROR
-                , callId: 7
+                , requestId: 7
                 , errorCode: 404
                 , errorDesc: 7
                 }
@@ -760,7 +760,7 @@ describe('nydus-protocol', function() {
 
     it('should isomorphically encode/decode CALL', function() {
       var obj = { type: proto.CALL
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , procPath: '/test/path'
                 , params: [ [ 'test', 'cool', 'params', 'bro' ], 'yeah', 7 ]
                 }
@@ -771,7 +771,7 @@ describe('nydus-protocol', function() {
 
     it('should isomorphically encode/decode RESULT', function() {
       var obj = { type: proto.RESULT
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , results: [ [ 'cool', 'results', 'bro'], 'yeah', 7 ]
                 }
         , result = proto.decode(proto.encode(obj))
@@ -781,7 +781,7 @@ describe('nydus-protocol', function() {
 
     it('should isomorphically encode/decode ERROR', function() {
       var obj = { type: proto.ERROR
-                , callId: 'coolId'
+                , requestId: 'coolId'
                 , errorCode: 404
                 , errorDesc: 'not found'
                 , errorDetails: { message: 'sorry not found try later thx' }

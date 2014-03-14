@@ -101,16 +101,16 @@ function encodeWelcome(obj, result) {
 }
 
 function decodeCall(parsed, result) {
-  // [ CALL, callId, procPath, ... ]
+  // [ CALL, requestId, procPath, ... ]
   if (parsed.length < 3) {
     throw new Error('invalid CALL message length: ' + parsed.length)
   } else if (typeof parsed[1] != 'string') {
-    throw new Error('invalid CALL message, callId must be a String')
+    throw new Error('invalid CALL message, requestId must be a String')
   } else if (typeof parsed[2] != 'string') {
     throw new Error('invalid CALL message, procPath must be a String')
   }
 
-  result.callId = parsed[1]
+  result.requestId = parsed[1]
   result.procPath = parsed[2]
   if (parsed.length > 3) {
     result.params = parsed.slice(3)
@@ -120,30 +120,30 @@ function decodeCall(parsed, result) {
 }
 
 function encodeCall(obj, result) {
-  // [ CALL, callId, procPath, params...]
-  if (obj.callId == null) {
-    throw new Error('incomplete CALL object, callId must be specified')
+  // [ CALL, requestId, procPath, params...]
+  if (obj.requestId == null) {
+    throw new Error('incomplete CALL object, requestId must be specified')
   } else if (obj.procPath == null) {
     throw new Error('incomplete CALL object, procPath must be specified')
   } else if (obj.params != null && !Array.isArray(obj.params)) {
     throw new Error('invalid CALL object, params must be an array if specified')
   }
 
-  result.push('' + obj.callId)
+  result.push('' + obj.requestId)
   result.push('' + obj.procPath)
   var params = obj.params || []
   result.push.apply(result, params)
 }
 
 function decodeResult(parsed, result) {
-  // [ RESULT, callId, ... ]
+  // [ RESULT, requestId, ... ]
   if (parsed.length < 2) {
     throw new Error('invalid RESULT message length: ' + parsed.length)
   } else if (typeof parsed[1] != 'string') {
-    throw new Error('invalid RESULT message, callId must be a String')
+    throw new Error('invalid RESULT message, requestId must be a String')
   }
 
-  result.callId = parsed[1]
+  result.requestId = parsed[1]
   if (parsed.length > 2) {
     result.results = parsed.slice(2)
   } else {
@@ -152,31 +152,31 @@ function decodeResult(parsed, result) {
 }
 
 function encodeResult(obj, result) {
-  // [ RESULT, callId, results... ]
-  if (obj.callId == null) {
-    throw new Error('incomplete RESULT object, callId must be specified')
+  // [ RESULT, requestId, results... ]
+  if (obj.requestId == null) {
+    throw new Error('incomplete RESULT object, requestId must be specified')
   } else if (obj.results != null && !Array.isArray(obj.results)) {
     throw new Error('invalid RESULT object, results must be an array if specified')
   }
 
-  result.push('' + obj.callId)
+  result.push('' + obj.requestId)
   var resultList = obj.results || []
   result.push.apply(result, resultList)
 }
 
 function decodeError(parsed, result) {
-  // [ ERROR, callId, errorCode, errorDesc, errorDetails (optional) ]
+  // [ ERROR, requestId, errorCode, errorDesc, errorDetails (optional) ]
   if (parsed.length < 4) {
     throw new Error('invalid ERROR message length: ' + parsed.length)
   } else if (typeof parsed[1] != 'string') {
-    throw new Error('invalid ERROR message, callId must be a String')
+    throw new Error('invalid ERROR message, requestId must be a String')
   } else if (typeof parsed[2] != 'number') {
     throw new Error('invalid ERROR message, errorCode must be a Number')
   } else if (typeof parsed[3] != 'string') {
     throw new Error('invalid ERROR message, errorDesc must be a String')
   }
 
-  result.callId = parsed[1]
+  result.requestId = parsed[1]
   result.errorCode = parsed[2]
   result.errorDesc = parsed[3]
   if (parsed.length >= 5) {
@@ -185,9 +185,9 @@ function decodeError(parsed, result) {
 }
 
 function encodeError(obj, result) {
-  // [ ERROR, callId, errorCode, errorDesc, errorDetails (optional) ]
-  if (obj.callId == null) {
-    throw new Error('incomplete ERROR object, callId must be specified')
+  // [ ERROR, requestId, errorCode, errorDesc, errorDetails (optional) ]
+  if (obj.requestId == null) {
+    throw new Error('incomplete ERROR object, requestId must be specified')
   } else if (obj.errorCode == null) {
     throw new Error('incomplete ERROR object, errorCode must be specified')
   } else if (obj.errorDesc == null) {
@@ -199,7 +199,7 @@ function encodeError(obj, result) {
     throw new Error('invalid ERROR object, errorCode must be numeric')
   }
 
-  result.push('' + obj.callId)
+  result.push('' + obj.requestId)
   result.push(errorCode)
   result.push('' + obj.errorDesc)
   if (typeof obj.errorDetails != 'undefined') {
