@@ -7,6 +7,23 @@ Encoder/decoder for nydus, a simple RPC/PubSub protocol designed for use over We
 [![NPM](https://nodei.co/npm/nydus-protocol.png)](https://nodei.co/npm/nydus-protocol/)
 
 ##Usage
+####`var protocol = require('nydus-protocol')`
+
+<b><code>protocol.decode(str)</code></b>
+
+Decode a JSON string into an object corresponding to a nydus message. All decoded objects will have a `type` field describing their message type (see below). Other fields correspond directly to the names in the documentation below. If the message is invalid in some way, this method <b>will throw</b>.
+
+<b><code>protocol.encode(obj)</code></b>
+
+Encode an object into a string (JSON-encoded array). The object must have a `type` field describing its message type, as well as other fields depending on what type of message it is (see below). All expected fields are named as in the documentation below. If the object is invalid in some way, this method <b>will throw</b>.
+
+<b><code>protocol.protocolVersion</code></b>
+
+The protocol version of this module. This number will increase as the protocol changes, and is used in `WELCOME` messages.
+
+<b><code>protocol.TYPES</code></b>
+
+The message types in the protocol, mapping names to ordinal values. Each message type is also directly on `protocol`, e.g. `protocol.WELCOME => 0`, `protocol.CALL => 1`, etc.
 
 ##Protocol
 Messages in nydus are JSON encoded arrays, with the first element describing the type of message. There are 9 types of messages:
@@ -153,6 +170,7 @@ Example:
 
 ##See Also
 [nydus](https://github.com/tec27/nydus) - The official server implementation
+
 [nydus-client](https://github.com/tec27/nydus-client) - The official client implementation (for node and browsers via browserify)
 
 ##License
