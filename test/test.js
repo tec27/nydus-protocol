@@ -870,5 +870,12 @@ describe('nydus-protocol', function() {
       expect(result).to.deep.equal(obj)
       expect(proto.encode(obj)).to.eql(proto.encode(result))
     })
+
+    it('should isomorphically encode/decode REVOKE', function() {
+      var obj = { type: proto.REVOKE, topicPath: '/test/path' }
+        , result = proto.decode(proto.encode(obj))
+      expect(result).to.deep.equal(obj)
+      expect(proto.encode(obj)).to.eql(proto.encode(result))
+    })
   })
 })
