@@ -290,13 +290,33 @@ describe('nydus-protocol', function() {
                             })
     })
 
-    it('should throw on shortned messages', function() {
+    it('should throw on shortened messages', function() {
       var encoded = JSON.stringify([ proto.EVENT, '/test/path' ])
       expect(bindDecode(encoded)).to.throw(Error)
     })
 
     it('should throw on invalid types', function() {
       var encoded = JSON.stringify([ proto.EVENT, 7, 'event' ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+  })
+
+  describe('#decode(REVOKE)', function() {
+    it('should parse a valid message', function() {
+      var encoded = JSON.stringify([ proto.REVOKE, '/test/path' ])
+        , result = proto.decode(encoded)
+      expect(result).to.eql({ type: proto.REVOKE
+                            , topicPath: '/test/path'
+                            })
+    })
+
+    it('should throw on shortened messages', function() {
+      var encoded = JSON.stringify([ proto.REVOKE ])
+      expect(bindDecode(encoded)).to.throw(Error)
+    })
+
+    it('should throw on invalid types', function() {
+      var encoded = JSON.stringify([ proto.REVOKE, 7 ])
       expect(bindDecode(encoded)).to.throw(Error)
     })
   })
@@ -744,6 +764,25 @@ describe('nydus-protocol', function() {
                                                 , '7'
                                                 , 'test'
                                                 ])
+    })
+  })
+
+  describe('#encode(REVOKE)', function() {
+    it('should throw on incomplete objects', function() {
+      var obj = { type: proto.REVOKE }
+      expect(bindEncode(obj)).to.throw(Error)
+    })
+
+    it('should encode valid objects', function() {
+      var obj = { type: proto.REVOKE, topicPath: '/test/path' }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.REVOKE, '/test/path' ])
+    })
+
+    it('should coerce values to the correct type', function() {
+      var obj = { type: proto.REVOKE, topicPath: 7 }
+        , result = proto.encode(obj)
+      expect(JSON.parse(result)).to.deep.equal([ proto.REVOKE, '7' ])
     })
   })
 

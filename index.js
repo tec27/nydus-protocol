@@ -8,13 +8,14 @@ exports.TYPES = { WELCOME: 0
                 , UNSUBSCRIBE: 5
                 , PUBLISH: 6
                 , EVENT: 7
+                , REVOKE: 8
                 }
 // Set all the message types directly on the exports as well, for easy access
 Object.keys(exports.TYPES).forEach(function(key) {
   exports[key] = exports.TYPES[key]
 })
 
-exports.protocolVersion = 1
+exports.protocolVersion = 2
 
 // Build a lookup which should be faster than an unoptimizable switch
 var decoders = []
@@ -26,6 +27,7 @@ decoders[exports.SUBSCRIBE] = decodeSubscribe
 decoders[exports.UNSUBSCRIBE] = decodeUnsubscribe
 decoders[exports.PUBLISH] = decodePublish
 decoders[exports.EVENT] = decodeEvent
+decoders[exports.REVOKE] = decodeRevoke
 
 exports.decode = function(str) {
   var parsed = JSON.parse(str)
@@ -58,6 +60,7 @@ encoders[exports.SUBSCRIBE] = encodeSubscribe
 encoders[exports.UNSUBSCRIBE] = encodeUnsubscribe
 encoders[exports.PUBLISH] = encodePublish
 encoders[exports.EVENT] = encodeEvent
+encoders[exports.REVOKE] = encodeRevoke
 // obj is an object with a type field, and any other type-specific fields (following the same format
 // as decoded messages)
 exports.encode = function(obj) {
@@ -312,4 +315,24 @@ function encodeEvent(obj, result) {
 
   result.push('' + obj.topicPath)
   result.push(obj.event)
+}
+
+function decodeRevoke(parsed, result) {
+  // [ REVOKE, topicPath ]
+  if (parsed.length < 2) {
+    throw new Error('invalid REVOKE message length: ' + parsed.length)
+  } else if (typeof parsed[1] != 'string') {
+    throw new Error('invalid REVOKE message, topicPath must be a String')
+  }
+
+  result.topicPath = parsed[1]
+}
+
+function encodeRevoke(obj, result) {
+  // [ REVOKE, topicPath ]
+  if (obj.topicPath == null) {
+    throw new Error('incomplete REVOKE object, topicPath must be specified')
+  }
+
+  result.push('' + obj.topicPath)
 }
