@@ -34,17 +34,22 @@ The protocol version of this module. This number will increase as the protocol c
 in `WELCOME` messages.
 
 <b><code>protocol.WELCOME</code></b>
+
 <b><code>protocol.INVOKE</code></b>
+
 <b><code>protocol.RESULT</code></b>
+
 <b><code>protocol.ERROR</code></b>
+
 <b><code>protocol.PUBLISH</code></b>
+
 <b><code>protocol.PARSER_ERROR</code></b>
 
 Message types, which will be passed in the `type` field of decoded messages.
 
 ## Protocol
 
-Nydus is designed to be a very simple protocol, with a distinct roles for clients and servers.
+Nydus is designed to be a very simple protocol, with distinct roles for clients and servers.
 Certain messages are only valid client -> server or server -> client. The basic idea is to allow
 both clients and servers to route messages based on URL patterns. Clients can make RPCs to servers
 (via `INVOKE`), and receive a direct `RESULT` or `ERROR` in response. Servers can `PUBLISH` events
