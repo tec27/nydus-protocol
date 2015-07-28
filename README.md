@@ -20,7 +20,7 @@ Decode a string into an object corresponding to a nydus message. All decoded obj
 
 If the message is not valid, a `PARSER_ERROR` message will be returned.
 
-<b><code>protocol.encode({ type, data = undefined, id = undefined, path = undefined })</code></b>
+<b><code>protocol.encode(type, data = undefined, id = undefined, path = undefined)</code></b>
 
 Encode an object into a packet string. The object must have a `type` field describing its message
 type, as well as other fields depending on what type of message it is (see below). All expected
