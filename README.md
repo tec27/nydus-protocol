@@ -148,10 +148,10 @@ identifying the resource to which the event pertains. `data` should be set to th
 => { type: PUBLISH, path: '/chat', data: { message: 'hello' } }
 ```
 
-##See Also
+## See Also
 [nydus](https://github.com/tec27/nydus) - The official server implementation
 
 [nydus-client](https://github.com/tec27/nydus-client) - The official client implementation (for node and browsers via browserify or webpack)
 
-##License
+## License
 MIT
