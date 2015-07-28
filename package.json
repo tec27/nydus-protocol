@@ -1,6 +1,6 @@
 {
   "name": "nydus-protocol",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Encoder/decoder for nydus, a simple RPC/PubSub protocol designed for use over WebSockets.",
   "main": "lib/index.js",
   "scripts": {
