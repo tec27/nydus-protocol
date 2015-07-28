@@ -1,177 +1,152 @@
-#nydus-protocol
+# nydus-protocol
 Encoder/decoder for nydus, a simple RPC/PubSub protocol designed for use over WebSockets.
 
-[![Build Status](https://img.shields.io/travis/tec27/nydus-protocol.png?style=flat)](https://travis-ci.org/tec27/nydus-protocol)
+[![Build Status](https://img.shields.io/travis/tec27/nydus-protocol.svg?style=flat)](https://travis-ci.org/tec27/nydus-protocol)
 [![NPM](https://img.shields.io/npm/v/nydus-protocol.svg?style=flat)](https://www.npmjs.org/package/nydus-protocol)
 
 [![NPM](https://nodei.co/npm/nydus-protocol.png)](https://nodei.co/npm/nydus-protocol/)
 
-##Usage
-####`var protocol = require('nydus-protocol')`
+## Usage
+#### `import protocol from 'nydus-protocol'`
 
 <b><code>protocol.decode(str)</code></b>
 
-Decode a JSON string into an object corresponding to a nydus message. All decoded objects will have a `type` field describing their message type (see below). Other fields correspond directly to the names in the documentation below. If the message is invalid in some way, this method <b>will throw</b>.
+Decode a string into an object corresponding to a nydus message. All decoded objects will have a
+`type` field describing their message type (see below). Other fields that *may* exist are:
 
-<b><code>protocol.encode(obj)</code></b>
+* `data` - a data payload for the message
+* `id` - a unique ID representing this call/response
+* `path` - a HTTP-like path representing a particular resource
 
-Encode an object into a string (JSON-encoded array). The object must have a `type` field describing its message type, as well as other fields depending on what type of message it is (see below). All expected fields are named as in the documentation below. If the object is invalid in some way, this method <b>will throw</b>.
+If the message is not valid, a `PARSER_ERROR` message will be returned.
+
+<b><code>protocol.encode({ type, data = undefined, id = undefined, path = undefined })</code></b>
+
+Encode an object into a packet string. The object must have a `type` field describing its message
+type, as well as other fields depending on what type of message it is (see below). All expected
+fields are named as in the documentation below. This method is very permissive, and will not cause
+errors if a message is formatted incorrectly (but such a message will usually result in a disconnect
+if a server receives it, so beware).
 
 <b><code>protocol.protocolVersion</code></b>
 
-The protocol version of this module. This number will increase as the protocol changes, and is used in `WELCOME` messages.
+The protocol version of this module. This number will increase as the protocol changes, and is used
+in `WELCOME` messages.
 
-<b><code>protocol.TYPES</code></b>
+<b><code>protocol.WELCOME</code></b>
+<b><code>protocol.INVOKE</code></b>
+<b><code>protocol.RESULT</code></b>
+<b><code>protocol.ERROR</code></b>
+<b><code>protocol.PUBLISH</code></b>
+<b><code>protocol.PARSER_ERROR</code></b>
 
-The message types in the protocol, mapping names to ordinal values. Each message type is also directly on `protocol`, e.g. `protocol.WELCOME => 0`, `protocol.CALL => 1`, etc.
+Message types, which will be passed in the `type` field of decoded messages.
 
-##Protocol
-Messages in nydus are JSON encoded arrays, with the first element describing the type of message. There are 9 types of messages:
+## Protocol
+
+Nydus is designed to be a very simple protocol, with a distinct roles for clients and servers.
+Certain messages are only valid client -> server or server -> client. The basic idea is to allow
+both clients and servers to route messages based on URL patterns. Clients can make RPCs to servers
+(via `INVOKE`), and receive a direct `RESULT` or `ERROR` in response. Servers can `PUBLISH` events
+on the fly to clients.
+
+Clients do not communicate to the server which `PUBLISH` channels they are interested in; it is up
+to the server to manage this list if it desires. One common way to do this would be in response to
+an RPC, but it can also simply resort to over-publishing. Similarly, servers do not communicate to
+clients which paths form valid RPCs. It is up to the server to properly reply to clients with an
+`ERROR` if they `INVOKE` an invalid path.
+
+Messages themselves are formatted in a simple string format:
+```
+<type>[$<id>][~<path>]|[data]
+```
+
+Each part of the message (except for the initial `type`) is prefixed by a character signaling which
+section it is. All sections other than `type` and `data` are optional (and `data` need not contain
+any actual data).
+
+`type` can be:
 
 * 0 - `WELCOME`
-* 1 - `CALL`
+* 1 - `INVOKE`
 * 2 - `RESULT`
 * 3 - `ERROR`
-* 4 - `SUBSCRIBE`
-* 5 - `UNSUBSCRIBE`
-* 6 - `PUBLISH`
-* 7 - `EVENT`
-* 8 - `REVOKE`
+* 4 - `PUBLISH`
 
-The meaning of the rest of the elements in the array depends on what type of message it is.
+`id` is a string of 1-32 characters, matching `/^[A-z0-9-]+$/`. It should be unique for all of the
+current `INVOKE`s in flight between a client and server.
+
+`path` is a HTTP-like path (e.g. `/hello/there`), URL-encoded.
+
+`data` is, if present, JSON-encoded. The underlying data may be any type
+(object, array, string, etc.).
 
 ### WELCOME
-Sent by the server to the client when the client connects. 
+Sent by the server to the client when the client connects. `protocolVersion` should be sent as the
+`data`. `id` and `path` must not be present.
 
 ```
-[ 0, protocolVersion, serverAgent ]
-```
-Example:
-```
-[ 0, 2, "AwesomeServer/1.0.1" ]
+0|3
+=> { type: WELCOME, data: 3 }
 ```
 
-### CALL
-Calls a remote procedure (client -> server or vice versa).
+### INVOKE
+Invokes a remote procedure on the server (only valid client -> server). `id` should be set to an ID
+unique for all the current `INVOKE`s in flight between this client and server. `path` should be a
+URL-encoded path to the RPC the client wishes to invoke. `data` should be any necessary arguments
+for the RPC.
 
 ```
-[ 1, callId, procPath, ... ]
-```
-`callId` is generated randomly, and needs to be unique for a client's requests in flight.
-`procPath` is the path to the RPC.
-Any number of RPC arguments may be passed after `procPath`.
-
-Example:
-```
-[ 1, "asdf1234", "/my/cool/procedure", "param1", 2, { param: 3 } ]
+1$asdf1234~/say%20hello|{"to":"everyone"}
+=> { type: INVOKE, id: 'asdf1234', path: '/say hello', data: { to: 'everyone' } }
 ```
 
 ### RESULT
-A non-error result from a `CALL`, `SUBSCRIBE`, or `UNSUBSCRIBE` request.
+A non-error result from an `INVOKE`. This must only be sent from the server to the client in
+response to an `INVOKE`. `id` should match the `INVOKE` this is a response to. `data` should contain
+any results from the RPC. `path` must not be set.
 
 ```
-[ 2, callId, ... ]
-```
-`callId` matches the id given by the requester.
-Any number of results can be passed after `callId` (including none).
-
-Example:
-```
-[ 2, "asdf1234",  "first result part", "second result part" ]
+2$asdf1234|"done"
+=> { type: RESULT, id: 'asdf1234', data: "done" }
 ```
 
 ### ERROR
-An error result from a `CALL`, `SUBSCRIBE`, or `UNSUBSCRIBE` request.
+An error result from an `INVOKE`. This must only be sent from the server to the client in response
+to an `INVOKE`. `id` should match the `INVOKE` this is a response to. `data` should contain any
+details about the error that occurred. `path` must not be set.
 
 ```
-[ 3, callId, errorCode, errorDesc, errorDetails (optional) ]
-```
-`callId` matches the id given by the requester.
-`errorCode` can be application-specific, although HTTP error codes and descriptions work decently
-well for this purpose and are well documented.
-`errorDetails` is an optional parameter (and may be as complex or as simple as desired).
-
-Example:
-```
-[ 3, "asdf1234", 403, "unauthorized", { message: "You are not authorized to do this!" } ]
+3$asdf1234|{"status":404,"message":"Not found"}
+=> { type: ERROR, id: 'asdf1234', data: { status: 404, message: 'Not found' } }
 ```
 
-### SUBSCRIBE
-Subscribe to receive events about a particular topic (client -> server).
-
+Error format is not enforced by Nydus, but a common convention is to utilize HTTP error codes and
+messages, along with an optional body, i.e.:
 ```
-[ 4, requestId, topicPath ]
-```
-`requestId` should be a randomly generated string, unique for the client's requests in flight.
-
-The server will send a `RESULT` or `ERROR` message in response.
-
-Example:
-```
-[ 4, "1234asdf", "/chat/myroom" ]
-```
-
-### UNSUBSCRIBE
-Unsubscribe from a particular topic to which you had previously subscribed (client -> server).
-
-```
-[ 5, requestId, topicPath ]
-```
-`requestId` should be a randomly generated string, unique for the client's requests in flight.
-
-The server will send a `RESULT` or `ERROR` message in response.
-
-Example:
-```
-[ 5, "1234asdf", "/chat/myroom" ]
+{
+  status: 418,
+  message: 'I\'m a teapot',
+  body: {
+    reset: true,
+  }
+}
 ```
 
 ### PUBLISH
-Publish an event to all clients subscribed to a topic. The server may decide whether or not to
-accept the event, and how to modify it prior to sending it to other clients.
+Publish an event to a client (only valid server -> client). `path` should be set to a path
+identifying the resource to which the event pertains. `data` should be set to the event data.
+`id` must not be set.
 
 ```
-[ 6, topicPath, event, excludeMe (optional, defaults false) ]
-```
-`event` can be as complex or as simple as desired.
-`excludeMe`, if true, specifies that the server should not send the event back to the current client.
-
-Example:
-```
-[ 6, "/chat/myroom", "Hello!" ]
-[ 6, "/chat/myroom", "Hello!", false ]
-```
-
-### EVENT
-An event was published to a particular topic to which this client is subscribed.
-
-```
-[ 7, topicPath, event ]
-```
-`event` can be as complex or as simple as desired.
-
-Example:
-```
-[ 7, "/chat/myroom", "Hello!" ]
-```
-
-### REVOKE
-Tell a client that a subscription they'd previously registered has been revoked, and that they are
-no longer subscribed to that topic.
-
-```
-[ 8, topicPath ]
-```
-
-Example:
-```
-[ 8, "/chat/myroom" ]
+4~/chat|{"message":"hello"}
+=> { type: PUBLISH, path: '/chat', data: { message: 'hello' } }
 ```
 
 ##See Also
 [nydus](https://github.com/tec27/nydus) - The official server implementation
 
-[nydus-client](https://github.com/tec27/nydus-client) - The official client implementation (for node and browsers via browserify)
+[nydus-client](https://github.com/tec27/nydus-client) - The official client implementation (for node and browsers via browserify or webpack)
 
 ##License
 MIT
