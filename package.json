@@ -4,12 +4,12 @@
   "description": "Encoder/decoder for nydus, a simple RPC/PubSub protocol designed for use over WebSockets.",
   "main": "lib/index.js",
   "scripts": {
-    "autotest": "mocha --watch -R spec --compilers js:babel/register --recursive test/",
+    "autotest": "mocha --watch -R spec --compilers js:babel-register --recursive test/",
     "build": "babel index.js --out-dir lib/",
     "clean": "rimraf lib",
     "lint": "eslint --ext .js ./",
-    "prepublish": "npm run lint && npm run test && npm run clean && npm run build",
-    "test": "mocha -R spec --compilers js:babel/register --recursive test/"
+    "prepublish": "yarn run lint && yarn run test && yarn run clean && yarn run build",
+    "test": "mocha -R spec --compilers js:babel-register --recursive test/"
   },
   "repository": {
     "type": "git",
@@ -33,13 +33,15 @@
     "debug": "^2.2.0"
   },
   "devDependencies": {
-    "babel": "^5.8.12",
-    "babel-core": "^5.8.12",
-    "babel-eslint": "^4.0.5",
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-preset-env": "^1.4.0",
+    "babel-register": "^6.24.1",
     "chai": "^3.2.0",
-    "eslint": "^1.6.0",
-    "eslint-plugin-babel": "^2.1.1",
-    "mocha": "^2.2.5",
+    "eslint": "^3.19.0",
+    "eslint-plugin-babel": "^4.1.1",
+    "mocha": "^3.4.1",
     "rimraf": "^2.4.2"
   }
 }

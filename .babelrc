@@ -1,4 +1,8 @@
 {
-  "stage": 0,
-  "loose": "all"
+  "presets": [["env", {
+    "targets": {
+      "node": 7.6,
+      "browsers": "last 2 versions",
+    }
+  }]]
 }
