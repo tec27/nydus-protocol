@@ -14,7 +14,6 @@ const LAST_TYPE = PUBLISH
 export const PARSER_ERROR = 11
 const parserError = { type: PARSER_ERROR }
 
-
 export function encode(type, data, id = null, path = null) {
   let output = '' + type
   if (id != null) {
