@@ -4,60 +4,59 @@ import {
   encode,
   decode,
   protocolVersion,
-  WELCOME,
-  INVOKE,
-  RESULT,
-  ERROR,
-  PUBLISH,
-  PARSER_ERROR,
-} from '../index.js'
+  MessageType,
+  NydusMessage,
+  UnvalidatedMessage,
+} from '../index'
 
-function packet({ type, id, path, data }) {
-  return { type, id, path, data }
+function packet<T>({ type, data, id, path }: UnvalidatedMessage<T>): NydusMessage<T> {
+  return ({ type, data, id, path } as {}) as NydusMessage<T>
 }
 
 describe('encode', () => {
   it('should encode WELCOMEs', () => {
-    const packet = encode(WELCOME, protocolVersion)
+    const packet = encode(MessageType.Welcome, protocolVersion)
     expect(packet).to.eql(`0|${protocolVersion}`)
   })
 
   it('should encode INVOKEs', () => {
-    const packet = encode(INVOKE, { hello: true }, '7', '/hi there')
+    const packet = encode(MessageType.Invoke, { hello: true }, '7', '/hi there')
     expect(packet).to.eql('1$7~/hi%20there|{"hello":true}')
   })
 
   it('should encode INVOKEs without data', () => {
-    const packet = encode(INVOKE, undefined, '7', '/hi')
+    const packet = encode(MessageType.Invoke, undefined, '7', '/hi')
     expect(packet).to.eql('1$7~/hi|')
   })
 
   it('should encode RESULTs', () => {
-    const packet = encode(RESULT, 'woo', '7')
+    const packet = encode(MessageType.Result, 'woo', '7')
     expect(packet).to.eql('2$7|"woo"')
   })
 
   it('should encode ERRORs', () => {
-    const packet = encode(ERROR, { status: 404, message: 'Not found' }, '7')
+    const packet = encode(MessageType.Error, { status: 404, message: 'Not found' }, '7')
     expect(packet).to.eql('3$7|{"status":404,"message":"Not found"}')
   })
 
   it('should encode PUBLISHes', () => {
-    const packet = encode(PUBLISH, { hi: 'world' }, null, '/publish')
+    const packet = encode(MessageType.Publish, { hi: 'world' }, undefined, '/publish')
     expect(packet).to.eql('4~/publish|{"hi":"world"}')
   })
 })
 
 describe('decode', () => {
   it('should decode WELCOMEs', () => {
-    expect(decode(`0|${protocolVersion}`)).to.eql(packet({ type: WELCOME, data: protocolVersion }))
+    expect(decode(`0|${protocolVersion}`)).to.eql(
+      packet({ type: MessageType.Welcome, data: protocolVersion }),
+    )
   })
 
   it('should decode INVOKEs', () => {
     const result = decode('1$7~/hi%20there|{"hello":true}')
     expect(result).to.eql(
       packet({
-        type: INVOKE,
+        type: MessageType.Invoke,
         data: { hello: true },
         id: '7',
         path: '/hi there',
@@ -67,19 +66,19 @@ describe('decode', () => {
 
   it('should decode INVOKEs without data', () => {
     const result = decode('1$7~/hi|')
-    expect(result).to.eql(packet({ type: INVOKE, id: '7', path: '/hi' }))
+    expect(result).to.eql(packet({ type: MessageType.Invoke, id: '7', path: '/hi' }))
   })
 
   it('should decode RESULTs', () => {
     const result = decode('2$7|"woo"')
-    expect(result).to.eql(packet({ type: RESULT, id: '7', data: 'woo' }))
+    expect(result).to.eql(packet({ type: MessageType.Result, id: '7', data: 'woo' }))
   })
 
   it('should decode ERRORs', () => {
     const result = decode('3$7|{"status":404,"message":"Not found"}')
     expect(result).to.eql(
       packet({
-        type: ERROR,
+        type: MessageType.Error,
         id: '7',
         data: { status: 404, message: 'Not found' },
       }),
@@ -90,7 +89,7 @@ describe('decode', () => {
     const result = decode('4~/publish|{"hi":"world"}')
     expect(result).to.eql(
       packet({
-        type: PUBLISH,
+        type: MessageType.Publish,
         path: '/publish',
         data: { hi: 'world' },
       }),
@@ -118,7 +117,7 @@ describe('decode', () => {
 
   for (const [caseDesc, testData] of validations) {
     it(`should return an error on ${caseDesc}`, () => {
-      expect(decode(testData)).to.eql({ type: PARSER_ERROR })
+      expect(decode(testData)).to.eql({ type: MessageType.ParserError })
     })
   }
 })
