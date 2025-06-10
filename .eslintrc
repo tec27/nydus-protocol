@@ -2,7 +2,7 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2018,
-    "sourceType": "module"
+    "sourceType": "module",
   },
 
   "extends": ["prettier", "plugin:@typescript-eslint/recommended"],
@@ -12,13 +12,13 @@
   "env": {
     "browser": true,
     "es6": true,
-    "node": true
+    "node": true,
   },
 
   "globals": {
     "document": "readonly",
     "navigator": "readonly",
-    "window": "readonly"
+    "window": "readonly",
   },
 
   "rules": {
@@ -128,10 +128,13 @@
     "no-redeclare": 2,
     "no-regex-spaces": 2,
     "no-reserved-keys": 0,
-    "no-restricted-globals": [2, {
-      "name": "fetch",
-      "message": "Do not use the built-in fetch, use client/network/fetch instead."
-    }],
+    "no-restricted-globals": [
+      2,
+      {
+        "name": "fetch",
+        "message": "Do not use the built-in fetch, use client/network/fetch instead.",
+      },
+    ],
     "no-restricted-modules": 0,
     "no-return-assign": 2,
     "no-script-url": 0,
@@ -182,7 +185,7 @@
     "spaced-comment": [
       2,
       "always",
-      { "markers": ["global", "globals", "eslint", "eslint-disable", "*package", "!", ","] }
+      { "markers": ["global", "globals", "eslint", "eslint-disable", "*package", "!", ","] },
     ],
     "spaced-line-comment": 0,
     "strict": 0,
@@ -201,7 +204,10 @@
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/no-extra-semi": 0,
     "@typescript-eslint/no-non-null-assertion": 0,
-    "@typescript-eslint/no-unused-vars": [2, { "vars": "all", "args": "none" }],
-    "@typescript-eslint/no-var-requires": 0
-  }
+    "@typescript-eslint/no-unused-vars": [
+      2,
+      { "vars": "all", "args": "none", "caughtErrors": "all", "caughtErrorsIgnorePattern": "^_" },
+    ],
+    "@typescript-eslint/no-var-requires": 0,
+  },
 }

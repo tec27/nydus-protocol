@@ -87,7 +87,7 @@ export function encode(type: MessageType, data?: any, id?: string, path?: string
 }
 
 function validate<T>(msg: NydusMessage<T>): NydusMessage<T> {
-  const umsg = (msg as any) as UnvalidatedMessage<T>
+  const umsg = msg as any as UnvalidatedMessage<T>
   switch (msg.type) {
     case MessageType.Welcome:
       if (umsg.id !== undefined || umsg.path !== undefined) {
@@ -144,7 +144,7 @@ const JSON_ERROR = {}
 function tryParse<T>(str: string): T | typeof JSON_ERROR {
   try {
     return JSON.parse(str)
-  } catch (err) {
+  } catch (_err) {
     return JSON_ERROR
   }
 }
@@ -219,5 +219,5 @@ export function decode<T>(str: string) {
     }
   }
 
-  return validate<T>(({ type, id, path, data } as any) as NydusMessage<T>)
+  return validate<T>({ type, id, path, data } as any as NydusMessage<T>)
 }

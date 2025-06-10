@@ -10,7 +10,7 @@ import {
 } from '../index'
 
 function packet<T>({ type, data, id, path }: UnvalidatedMessage<T>): NydusMessage<T> {
-  return ({ type, data, id, path } as any) as NydusMessage<T>
+  return { type, data, id, path } as any as NydusMessage<T>
 }
 
 describe('encode', () => {
