@@ -1,22 +1,23 @@
 # nydus-protocol
+
 Encoder/decoder for nydus, a simple RPC/PubSub protocol designed for use over WebSockets.
 
-[![Build Status](https://img.shields.io/travis/tec27/nydus-protocol.svg?style=flat)](https://travis-ci.org/tec27/nydus-protocol)
 [![NPM](https://img.shields.io/npm/v/nydus-protocol.svg?style=flat)](https://www.npmjs.org/package/nydus-protocol)
 
 [![NPM](https://nodei.co/npm/nydus-protocol.png)](https://nodei.co/npm/nydus-protocol/)
 
 ## Usage
+
 #### `import protocol from 'nydus-protocol'`
 
 <b><code>protocol.decode(str)</code></b>
 
 Decode a string into an object corresponding to a nydus message. All decoded objects will have a
-`type` field describing their message type (see below). Other fields that *may* exist are:
+`type` field describing their message type (see below). Other fields that _may_ exist are:
 
-* `data` - a data payload for the message
-* `id` - a unique ID representing this call/response
-* `path` - a HTTP-like path representing a particular resource
+- `data` - a data payload for the message
+- `id` - a unique ID representing this call/response
+- `path` - a HTTP-like path representing a particular resource
 
 If the message is not valid, a `PARSER_ERROR` message will be returned.
 
@@ -62,6 +63,7 @@ clients which paths form valid RPCs. It is up to the server to properly reply to
 `ERROR` if they `INVOKE` an invalid path.
 
 Messages themselves are formatted in a simple string format:
+
 ```
 <type>[$<id>][~<path>]|[data]
 ```
@@ -72,11 +74,11 @@ any actual data).
 
 `type` can be:
 
-* 0 - `WELCOME`
-* 1 - `INVOKE`
-* 2 - `RESULT`
-* 3 - `ERROR`
-* 4 - `PUBLISH`
+- 0 - `WELCOME`
+- 1 - `INVOKE`
+- 2 - `RESULT`
+- 3 - `ERROR`
+- 4 - `PUBLISH`
 
 `id` is a string of 1-32 characters, matching `/^[A-z0-9-]+$/`. It should be unique for all of the
 current `INVOKE`s in flight between a client and server.
@@ -87,6 +89,7 @@ current `INVOKE`s in flight between a client and server.
 (object, array, string, etc.).
 
 ### WELCOME
+
 Sent by the server to the client when the client connects. `protocolVersion` should be sent as the
 `data`. `id` and `path` must not be present.
 
@@ -96,6 +99,7 @@ Sent by the server to the client when the client connects. `protocolVersion` sho
 ```
 
 ### INVOKE
+
 Invokes a remote procedure on the server (only valid client -> server). `id` should be set to an ID
 unique for all the current `INVOKE`s in flight between this client and server. `path` should be a
 URL-encoded path to the RPC the client wishes to invoke. `data` should be any necessary arguments
@@ -107,6 +111,7 @@ for the RPC.
 ```
 
 ### RESULT
+
 A non-error result from an `INVOKE`. This must only be sent from the server to the client in
 response to an `INVOKE`. `id` should match the `INVOKE` this is a response to. `data` should contain
 any results from the RPC. `path` must not be set.
@@ -117,6 +122,7 @@ any results from the RPC. `path` must not be set.
 ```
 
 ### ERROR
+
 An error result from an `INVOKE`. This must only be sent from the server to the client in response
 to an `INVOKE`. `id` should match the `INVOKE` this is a response to. `data` should contain any
 details about the error that occurred. `path` must not be set.
@@ -128,6 +134,7 @@ details about the error that occurred. `path` must not be set.
 
 Error format is not enforced by Nydus, but a common convention is to utilize HTTP error codes and
 messages, along with an optional body, i.e.:
+
 ```
 {
   status: 418,
@@ -139,6 +146,7 @@ messages, along with an optional body, i.e.:
 ```
 
 ### PUBLISH
+
 Publish an event to a client (only valid server -> client). `path` should be set to a path
 identifying the resource to which the event pertains. `data` should be set to the event data.
 `id` must not be set.
@@ -149,9 +157,11 @@ identifying the resource to which the event pertains. `data` should be set to th
 ```
 
 ## See Also
+
 [nydus](https://github.com/tec27/nydus) - The official server implementation
 
 [nydus-client](https://github.com/tec27/nydus-client) - The official client implementation (for node and browsers via browserify or webpack)
 
 ## License
+
 MIT
